@@ -89,14 +89,16 @@ namespace GNU.Gettext {
     /// Loads and returns a satellite assembly.
     /// </summary>
     // This is like Assembly.GetSatelliteAssembly, but uses resourceName
-    // instead of assembly.GetName().Name, and works around a bug in
-    // mono-0.28.
+    // instead of assembly.GetName().Name and does not use the public key
+    // when loading the assembly as the msgfmt generated assembly will not
+    // have it
     private static Assembly GetSatelliteAssembly (Assembly assembly, String resourceName, CultureInfo culture) {
-      String satelliteExpectedLocation =
-        Path.GetDirectoryName(assembly.Location)
-        + Path.DirectorySeparatorChar + culture.Name
-        + Path.DirectorySeparatorChar + resourceName + ".resources.dll";
-      return Assembly.LoadFrom(satelliteExpectedLocation);
+      AssemblyName assemblyName = assembly.GetName();
+      AssemblyName resourcesAssemblyName = new AssemblyName();
+      resourcesAssemblyName.Version = assemblyName.Version;
+      resourcesAssemblyName.CultureInfo = culture;
+      resourcesAssemblyName.Name = resourceName + ".resources";
+      return Assembly.Load(resourcesAssemblyName);
     }
 
     /// <summary>
